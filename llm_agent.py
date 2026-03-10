@@ -1,6 +1,7 @@
-import ollama
+from groq import Groq
+import os
 
-print("LLM AGENT MODULE LOADED")
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def generate_insight(question, context):
 
@@ -16,12 +17,14 @@ Founder Question:
 Provide:
 1. Key numbers
 2. Insights
-3. Risks if data is incomplete.
+3. Risks if data is incomplete
 """
 
-    response = ollama.chat(
-        model="mistral",
-        messages=[{"role": "user", "content": prompt}]
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
     )
 
-    return response["message"]["content"]
+    return response.choices[0].message.content
