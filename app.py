@@ -9,14 +9,21 @@ st.title("Monday.com Business Intelligence Agent")
 
 st.write("Fetching data from monday.com...")
 
-# Fetch data
+# =========================
+# FETCH DATA (CACHED)
+# =========================
+
+@st.cache_data
+def load_data():
+    deals = fetch_deals()
+    work_orders = fetch_work_orders()
+    return deals, work_orders
+
 try:
-    deals_df = fetch_deals()
-    work_orders_df = fetch_work_orders()
+    deals_df, work_orders_df = load_data()
 except Exception as e:
     st.error(f"Error fetching data from monday.com: {e}")
     st.stop()
-
 
 # =========================
 # DATA OVERVIEW
@@ -34,9 +41,8 @@ with col2:
     st.subheader("Work Orders Data")
     st.dataframe(work_orders_df)
 
-
 # =========================
-# BASIC BUSINESS METRICS
+# BUSINESS METRICS
 # =========================
 
 st.header("Business Metrics")
@@ -44,11 +50,14 @@ st.header("Business Metrics")
 metrics_col1, metrics_col2, metrics_col3 = st.columns(3)
 
 try:
+    deals_df["Masked Deal value"] = deals_df["Masked Deal value"].replace("", None)
     deals_df["Masked Deal value"] = pd.to_numeric(
         deals_df["Masked Deal value"], errors="coerce"
     )
+
     total_pipeline = deals_df["Masked Deal value"].sum()
-except:
+
+except Exception:
     total_pipeline = 0
 
 with metrics_col1:
@@ -60,18 +69,17 @@ with metrics_col2:
 with metrics_col3:
     st.metric("Total Work Orders", len(work_orders_df))
 
-
 # =========================
 # DEAL STATUS ANALYSIS
 # =========================
 
 if "Deal Status" in deals_df.columns:
+
     st.header("Deal Status Distribution")
 
     status_counts = deals_df["Deal Status"].value_counts()
 
     st.bar_chart(status_counts)
-
 
 # =========================
 # DATA QUALITY CHECKS
@@ -97,12 +105,15 @@ else:
     for issue in issues:
         st.warning(issue)
 
-
 # =========================
 # FOUNDER QUESTION INTERFACE
 # =========================
 
 st.header("Ask a Business Question")
+
+st.info(
+    "Ask questions about revenue, pipeline health, deal status, or operational metrics."
+)
 
 question = st.text_input(
     "Example: How is our pipeline looking for high probability deals?"
@@ -111,18 +122,26 @@ question = st.text_input(
 if question:
 
     context = f"""
-Total Pipeline Value: {total_pipeline}
-Total Deals: {len(deals_df)}
-Total Work Orders: {len(work_orders_df)}
+Business Metrics:
+- Total Pipeline Value: {total_pipeline}
+- Total Deals: {len(deals_df)}
+- Total Work Orders: {len(work_orders_df)}
 
-Deal Status Distribution:
-{deals_df['Deal Status'].value_counts() if 'Deal Status' in deals_df.columns else 'Unknown'}
+Deal Status Breakdown:
+{deals_df['Deal Status'].value_counts().to_dict() if 'Deal Status' in deals_df.columns else 'Unknown'}
 """
 
-    response = generate_insight(question, context)
+    try:
+        with st.spinner("Analyzing business data..."):
+            response = generate_insight(question, context)
 
-    st.subheader("Agent Response")
-    st.write(response)
+        st.subheader("Agent Response")
+        st.write(response)
+
+    except Exception as e:
+        st.error("AI model could not generate response.")
+        st.write(e)
+
 # =========================
 # LEADERSHIP SUMMARY
 # =========================
@@ -133,12 +152,12 @@ if st.button("Generate Leadership Summary"):
 
     st.subheader("Leadership Update")
 
-    st.write(f"Pipeline Value: ${total_pipeline:,.0f}")
-    st.write(f"Total Deals: {len(deals_df)}")
-    st.write(f"Total Work Orders: {len(work_orders_df)}")
+    st.write(f"**Pipeline Value:** ${total_pipeline:,.0f}")
+    st.write(f"**Total Deals:** {len(deals_df)}")
+    st.write(f"**Total Work Orders:** {len(work_orders_df)}")
 
     if "Deal Status" in deals_df.columns:
         status_counts = deals_df["Deal Status"].value_counts()
 
-        st.write("Deal Status Breakdown:")
-        st.write(status_counts)
+        st.write("**Deal Status Breakdown:**")
+        st.table(status_counts)
