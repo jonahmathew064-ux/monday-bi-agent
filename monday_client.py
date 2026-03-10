@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 
 # Paste your Monday API key here
-API_KEY = "API_KEY = "YOUR_MONDAY_API_KEY"
+API_KEY = "YOUR_MONDAY_API_KEY"
 # Board IDs from your Monday workspace
 DEALS_BOARD_ID = 5027108732
 WORK_ORDERS_BOARD_ID = 5027108789
@@ -76,4 +76,5 @@ def fetch_deals():
 
 
 def fetch_work_orders():
+
     return fetch_board(WORK_ORDERS_BOARD_ID)
