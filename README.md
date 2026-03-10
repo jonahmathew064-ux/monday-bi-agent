@@ -2,165 +2,180 @@
 
 ## Overview
 
-This project implements an AI-powered Business Intelligence agent capable of answering founder-level questions using operational and sales data stored in Monday.com boards.
+This project implements an **AI-powered Business Intelligence Agent** that helps founders and executives quickly answer business questions using operational and sales data from monday.com.
 
-The system dynamically retrieves data from Monday.com using its GraphQL API, processes and cleans the data, and generates insights through a conversational interface powered by an open-source Large Language Model.
+The agent integrates with two monday.com boards:
 
-The goal of this system is to help founders quickly understand:
+- **Deals Board** – represents the sales pipeline
+- **Work Orders Board** – represents operational project execution
 
-- Sales pipeline health
-- Deal performance
-- Operational workload
-- Potential risks in business data
+Using these data sources, the system can:
 
-without manually querying multiple data sources.
+- Analyze pipeline performance
+- Identify operational workload
+- Detect data quality issues
+- Generate leadership updates
+- Answer founder-level business questions using AI
+
+The system combines **data integration, analytics, and AI-powered insights** into a single conversational dashboard.
 
 ---
-## Running with LLM Support
 
-The AI insight generation uses the open-source Mistral model via Ollama.
+## Live Hosted Prototype
 
-To run the full LLM-powered version locally:
+Access the deployed application here:
 
-1. Install Ollama
-2. Pull the Mistral model
+https://monday-bi-agent-5dan95kdwpejxbjs2anahy.streamlit.app/
 
-ollama pull mistral
+The hosted prototype demonstrates:
 
-3. Start Ollama
+- Monday.com API integration
+- Business metrics dashboard
+- Conversational interface
+- AI-powered business insights
 
-ollama run mistral
-
-4. Run the application
-
-streamlit run app.py
-
-Note: The deployed Streamlit Cloud prototype does not execute the Ollama model because the hosting environment does not support running local LLM runtimes.
+---
 
 ## System Architecture
 
-The system follows a layered architecture:
+The system consists of four main layers.
 
-User Question  
-↓  
-Streamlit Interface  
-↓  
-Monday.com API Integration  
-↓  
-Data Cleaning & Processing  
-↓  
-Business Metrics Engine  
-↓  
-LLM Insight Generation  
-↓  
-Founder-Level Business Insight
+### 1. Streamlit UI
+
+Provides the interactive dashboard and conversational interface.
+
+Features include:
+
+- Data visualization
+- Business metrics dashboard
+- Founder question interface
+- Leadership update generator
 
 ---
 
-## Components
+### 2. Monday.com API Integration
 
-### 1. Streamlit UI
-Provides the dashboard and conversational interface where users can:
-- view data tables
-- see business metrics
-- ask founder-level questions
-- generate leadership summaries
+The system retrieves live data from monday.com boards using the **GraphQL API**.
 
-### 2. Monday API Client
-Fetches data dynamically from the **Deals** and **Work Orders** boards using the Monday GraphQL API.
+The `monday_client.py` module handles:
+
+- API authentication
+- Querying board data
+- Transforming responses into structured DataFrames
+
+---
 
 ### 3. Data Processing Layer
-Handles messy real-world data by:
-- cleaning missing values
-- normalizing numeric formats
-- identifying incomplete records
 
-### 4. Business Intelligence Layer
-Calculates key business metrics such as:
-- total pipeline value
-- number of deals
-- operational workload
-- deal status distribution
+Using **Pandas**, the system cleans and processes messy real-world data.
 
-### 5. AI Insight Layer
-Uses the **Mistral open-source LLM via Ollama** to interpret founder questions and generate meaningful insights.
+Key processing steps include:
+
+- Handling missing values
+- Converting numeric fields
+- Aggregating pipeline metrics
+- Detecting data quality issues
+
+This ensures the system remains **robust even with incomplete or inconsistent data**.
+
+---
+
+### 4. AI Insight Generation
+
+Founder questions are interpreted using an **LLM powered by Groq**.
+
+The system uses:
+
+- **LLaMA 3 (8B)**
+- **Groq Cloud inference API**
+
+The AI receives structured business metrics and generates responses including:
+
+- Key business numbers
+- Strategic insights
+- Potential risks in the pipeline
+
+This enables the system to produce **actionable business intelligence rather than raw data outputs**.
 
 ---
 
 ## Project Structure
 
-
+```
 monday-bi-agent
 │
-├── app.py # Main Streamlit application
-├── monday_client.py # Monday.com API integration
-├── llm_agent.py # LLM-based insight generation
-├── requirements.txt # Python dependencies
-└── README.md
-
+├── app.py               # Main Streamlit application
+├── monday_client.py     # Monday.com API integration
+├── llm_agent.py         # AI insight generation using Groq
+├── requirements.txt     # Python dependencies
+├── README.md            # Project documentation
+└── decision_log.pdf     # Design decisions and tradeoffs
+```
 
 ---
 
-## Setup Instructions
+## Setup Instructions (Local Run)
 
 ### 1. Clone the repository
 
-
+```bash
 git clone <repository_url>
 cd monday-bi-agent
-
+```
 
 ### 2. Install dependencies
 
-
+```bash
 pip install -r requirements.txt
+```
 
+### 3. Set environment variables
 
-### 3. Add Monday API Key
+The application requires two API keys:
 
-Edit `monday_client.py` and add your Monday API key:
-
-
-API_KEY = "YOUR_MONDAY_API_KEY"
-
+```
+MONDAY_API_KEY=your_monday_api_key
+GROQ_API_KEY=your_groq_api_key
+```
 
 ### 4. Run the application
 
-
+```bash
 streamlit run app.py
+```
 
+The app will be available at:
 
-The application will start locally at:
-
-
+```
 http://localhost:8501
-
+```
 
 ---
 
-## Example Questions
+## Example Founder Questions
 
-Founders can ask questions such as:
+The AI agent can answer questions such as:
 
 - How is our pipeline performing?
 - What insights can you derive from the current deal pipeline?
-- Are there any risks in our sales pipeline?
+- Are there risks in our sales pipeline?
 - What does the deal status distribution suggest about performance?
-
-The AI agent analyzes the business data and provides founder-level insights.
+- Are there operational risks based on current work orders?
 
 ---
 
 ## Leadership Updates
 
-The system includes a **Leadership Update Generator** that summarizes key operational and sales metrics including:
+The system includes a **Leadership Update Generator**.
+
+This feature summarizes key business metrics including:
 
 - Total pipeline value
 - Number of deals
 - Operational workload
 - Deal status distribution
 
-This feature helps founders and executives quickly prepare leadership reports.
+This allows executives to quickly prepare **leadership reports and internal updates**.
 
 ---
 
@@ -170,20 +185,36 @@ This feature helps founders and executives quickly prepare leadership reports.
 - Streamlit
 - Pandas
 - Monday.com GraphQL API
-- Ollama
-- Mistral (Open-source LLM)
+- Groq Cloud
+- LLaMA 3 (Open-source LLM)
+
+---
+
+## Data Resilience
+
+The system is designed to handle **messy real-world business data**.
+
+Implemented resilience features include:
+
+- Handling missing deal values
+- Managing incomplete records
+- Detecting data quality issues
+- Graceful error handling for API failures
+
+This ensures the system continues to produce **useful insights even with imperfect data**.
 
 ---
 
 ## Future Improvements
 
-With additional development time, the following improvements could be implemented:
+With additional development time, the following improvements could be added:
 
-- Query understanding for sector-based filtering
-- Time-based pipeline forecasting
-- Automated leadership report generation
-- Multi-board analytics
-- Advanced data visualization
+- Sector-based pipeline analysis
+- Revenue forecasting
+- Time-based trend analysis
+- Advanced conversational query understanding
+- Enhanced visual dashboards
+- Multi-board cross analytics
 
 ---
 
@@ -191,4 +222,7 @@ With additional development time, the following improvements could be implemente
 
 **Jonah Mathew**  
 BTech Computer Science and Engineering (Data Science)  
-Christ University
+Christ University, Bangalore
+
+---
+
